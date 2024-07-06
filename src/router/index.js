@@ -1,64 +1,81 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import employees from '../views/employees.vue'
-import departments from '../views/departments.vue'
-import login from '../views/login.vue'
-import register from '../views/register.vue'
-import { getAuth } from 'firebase/auth'
-import { auth } from '@/firebase/db'
+import { createRouter, createWebHistory } from "vue-router";
+import HomeView from "../views/HomeView.vue";
+import employees from "../views/employees.vue";
+import departments from "../views/departments.vue";
+import login from "../views/login.vue";
+import register from "../views/register.vue";
+import { getAuth } from "firebase/auth";
+import { auth } from "@/firebase/db";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: HomeView,
       meta: {
-        requireAuth:true
-      }
+        requireAuth: true,
+      },
     },
-     {
-      path: '/employees',
-      name: 'employees',
+    {
+      path: "/employees",
+      name: "employees",
       component: employees,
       meta: {
-        requireAuth:true
-      }
+        requireAuth: true,
+      },
     },
-     {
-      path: '/departments',
-      name: 'departments',
+    {
+      path: "/departments",
+      name: "departments",
       component: departments,
       meta: {
-        requireAuth:true
-      }
+        requireAuth: true,
+      },
     },
-     {
-      path: '/login',
-      name: 'login',
+    {
+      path: "/login",
+      name: "login",
       component: login,
-    
+      meta: {
+        requireAuth: false,
+      },
     },
-     {
-      path: '/register',
-      name: 'register',
+    {
+      path: "/register",
+      name: "register",
       component: register,
+      meta: {
+        requireAuth: false,
+      },
     },
-  ]
-})
-// router.beforeEach((to,from, next) => {
-//   if(to.path == '/login' && auth.currentUser){
-//     next('/');
-//     return;
-//   }
+  ],
+});
 
-//   if(to.matched.some((record) => record.meta.requireAuth) && !auth.currentUser){
-//     next('/login');
-//     return;
-//   }
+router.beforeEach((to, from, next) => {
+  getAuth().onAuthStateChanged((user) => {
+    if (to.matched.some((record) => record.meta.requireAuth)) {
+      if (!user) {
+        next({ path: "/login" });
+        return;
+      } else {
+        next();
+        return;
+      }
+    } else if (!to.matched.some((record) => record.meta.requireAuth)) {
+      if (!user) {
+        next();
+        return;
+      } else {
+        next({ path: "/" });
+        return;
+      }
+    } else {
+      next();
+      return;
+    }
+  });
+});
 
-//   next();
-// })
-
-export default router
+export default router;
